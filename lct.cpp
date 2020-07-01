@@ -12,8 +12,6 @@ typedef struct node_str Node;
 int id_counter = 0;
 int path_counter = 0;
 
-
-
 typedef adjacency_list<vecS, vecS, bidirectionalS, Node, int> Graph;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 typedef graph_traits<Graph>::vertex_iterator vertex_iterator;
@@ -116,10 +114,14 @@ std::vector<Vertex> join(std::vector<Vertex> p1, Vertex u, std::vector<Vertex> p
         return paths[index].path;
     }
     else
-    {
-        Vertex p2_head = findhead(p2); // index for the map
-        
-        if(!g[p2_head].in_path == g[u].in_path)
+    {   
+        Vertex p2_head;
+        if(p2.empty())
+            p2_head = u;
+        else
+            p2_head = findhead(p2); // index for the map
+        std::cout << "head is : " << g[p2_head].data << std::endl;
+        if(g[p2_head].in_path != g[u].in_path)
         {
             boost::add_edge(u, p2_head, g);
             vertex_path new_path;
@@ -131,7 +133,6 @@ std::vector<Vertex> join(std::vector<Vertex> p1, Vertex u, std::vector<Vertex> p
             g[u].in_path = g[p2_head].in_path;
             int index = g[p2_head].in_path;
             paths[index] = new_path;
-            
             return paths[index].path;
         }
     return p2;
@@ -180,6 +181,7 @@ std::pair<std::vector<Vertex>, std::vector<Vertex> > split(Vertex u, Graph &g)
     {
         vertex_path new_path;
         path_counter++;
+        std::cout << "counter : " << path_counter << std::endl;
         for(std::vector<Vertex>::iterator it1 = q.begin(); it1 != q.end(); ++it1)
             g[*it1].in_path = path_counter;
         new_path.path = q;
@@ -203,18 +205,25 @@ std::vector<Vertex> expose(Vertex u, Graph &g)
         cutted_paths = split(u, g);
         q = cutted_paths.first;
         r = cutted_paths.second;
+        std::cout << "r: " << r.size() << std::endl;
+        std::cout << "q: " << q.size() << std::endl;
+
         if(!q.empty())
         {
-            paths[g[findtail(p)].in_path].successor = u;
+            paths[g[findtail(q)].in_path].successor = u;
         }
+        std::cout << "prin to join p: " << p.size() << std::endl;
+        std::cout << "to u einai to : " << g[u].data<< std::endl;
         p = join(p, u, r, g);
+        std::cout << "meta to join p: " << p.size() << std::endl;
 
-        if(g[u].parent == NULL && g[u].is_root)
+        if(g[u].parent == NULL)
         {
             paths[g[findtail(p)].in_path].successor = NULL;
-            return  p;
+            return p;
         }
     }
+return p;
 }
 
 void cut(Vertex u, Graph &g) // needs expose
@@ -234,8 +243,8 @@ int main(){
 
     std::pair<vertex_iterator, vertex_iterator> vp;
     Vertex x1 = makepath(g);
-    g[x1].is_root = 1; // my root
-    g[x1].parent = NULL;
+    // g[x1].is_root = 1; // my root
+    // g[x1].parent = NULL;
 
     makepath(g);
     Vertex x = makepath(g);
@@ -266,16 +275,22 @@ int main(){
     // std::cout << g[x1].data << std::endl;
     // std::vector<Vertex> p = expose(x1, g);
 
-
+    //expose(x1, g);
     // cut(x1,g);
-    expose(x1,g);
-    // split(x1, g);
-    // std::cout << g[x1].in_path << std::endl;
-    for(std::vector<Vertex>::iterator it = paths[6].path.begin(); it != paths[6].path.end(); ++it)
+    Vertex x6 = makepath(g);
+    for(std::vector<Vertex>::iterator it = paths[g[x1].in_path].path.begin(); it != paths[g[x1].in_path].path.end(); ++it)
     {
         std::cout << g[*it].data << std::endl;
     }
+    expose(x6, g);
 
+    // // std::cout << g[x1].in_path << std::endl;
+    // std::cout << "x6 anhkei" << g[x6].in_path << std::endl;
+    // std::cout << "x1 anhkei" << g[x1].in_path << std::endl;
+    for(std::vector<Vertex>::iterator it = paths[g[x1].in_path].path.begin(); it != paths[g[x1].in_path].path.end(); ++it)
+    {
+        std::cout << g[*it].data << std::endl;
+    }
 
     // std::cout << paths[g[x].in_path].path.size();
     // std::cout << paths[findtail(paths[g[x].in_path].path)].successor << std::endl;
